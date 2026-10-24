@@ -17,20 +17,37 @@ def get_databricks_connection():
     )
 
 # Cache de la conexión para no reconectar en cada interacción
-@st.cache_resource
+@st.cache_resource(ttl=300)
 def get_cached_connection():
     return get_databricks_connection()
 
 # Función para ejecutar queries y devolver un DataFrame
 @st.cache_data(ttl=600)  # Cache de 10 minutos
 def load_table(table_name):
-    with get_cached_connection() as conn:
+    try:
+        # Intenta usar la conexión que está en caché
+        conn = get_cached_connection()
         with conn.cursor() as cursor:
             cursor.execute(f"SELECT * FROM {table_name}")
             result = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
             return pd.DataFrame(result, columns=columns)
-
+    except Exception as e:
+        # Si falla (por ejemplo, conexión cerrada), limpia la caché de la conexión
+        st.cache_resource.clear()
+        
+        # Vuelve a intentar con una conexión nueva
+        try:
+            conn = get_cached_connection()
+            with conn.cursor() as cursor:
+                cursor.execute(f"SELECT * FROM {table_name}")
+                result = cursor.fetchall()
+                columns = [desc[0] for desc in cursor.description]
+                return pd.DataFrame(result, columns=columns)
+        except Exception as retry_error:
+            # Si el segundo intento también falla, muestra el error
+            st.error(f"Error al conectar con Databricks después de reintentar: {retry_error}")
+            st.stop()
 # --- Carga de datos ---
 try:
     df_summary = load_table("gold_market_summary")
