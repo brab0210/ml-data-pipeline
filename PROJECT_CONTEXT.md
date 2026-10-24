@@ -13,12 +13,10 @@ Construir un pipeline ETL end-to-end (Bronze → Silver → Gold) utilizando Dat
 - **Control de versiones:** GitHub (integrado con Databricks Git folders).
 
 ##  Estado Actual
-- **Etapa actual:** Pipeline ETL finalizado. Siguiente paso: Dashboard.
-- **Última tarea completada:** Creación exitosa de las 4 tablas de la Capa Gold usando SQL analítico.
-- **Próxima tarea a realizar:** Desarrollar la aplicación web en Streamlit para visualizar los datos. Definir método de conexión (Opción A: Conector directo a Databricks con PAT. Opción B: Exportar a CSV/Parquet y leer desde GitHub).
-- **Decisiones tomadas:** 
-  - Se cambió la fuente de Mercado Libre a CoinGecko por problemas de políticas de acceso (403 Forbidden).
-  - Se usó Python para Bronze (por consumo de API) y SQL para Silver y Gold (por legibilidad y eficiencia analítica).
+- **Etapa actual:** Dashboard funcional y desplegado.
+- **Última tarea completada:** Conexión de Streamlit a Databricks mediante `databricks-sql-connector` y despliegue en Streamlit Community Cloud.
+- **Próxima tarea a realizar:** (Opcional) Implementar una barra lateral con filtros interactivos o añadir más visualizaciones.
+- **Decisiones tomadas:** Se optó por la Opción A (conexión en tiempo real vía PAT) en lugar de exportar CSVs.
 
 ##  Notas para el próximo chat / IA
 - El usuario tiene bases de desarrollo web, lo cual es ideal para personalizar el frontend en Streamlit.
