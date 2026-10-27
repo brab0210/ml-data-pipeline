@@ -30,3 +30,24 @@ API CoinGecko (JSON)
    │
    ▼
 [ Streamlit]   ──> Dashboard interactivo conectado en tiempo real vía databricks-sql-connector.
+
+##  Tecnologías Utilizadas
+
+*   **Procesamiento y Almacenamiento:** Databricks, PySpark, Spark SQL, Delta Lake.
+*   **Ingesta:** Python (`requests`).
+*   **Orquestación:** Databricks Workflows (Jobs con dependencias diarias).
+*   **Visualización:** Streamlit (Community Cloud), Plotly, Pandas.
+*   **Lenguajes:** Python y SQL.
+
+##  Tablas Generadas (Capa Gold)
+
+*   `gold_market_summary`: KPIs generales del mercado (Capitalización total, volumen operado 24h, etc.).
+*   `gold_top_10_market_cap`: Ranking de las 10 principales monedas por capitalización.
+*   `gold_top_gainers`: Las 5 monedas con mayor suba porcentual en las últimas 24 horas.
+*   `gold_top_losers`: Las 5 monedas con mayor caída porcentual en las últimas 24 horas.
+
+##  Características Técnicas Destacadas
+
+*   **Automatización total:** Un Job en Databricks orquesta la ingesta y transformación diaria (Tarea Bronze ➔ Tarea Silver ➔ Tarea Gold).
+*   **Manejo robusto de conexiones:** La app de Streamlit implementa un sistema de reintentos y TTL (Time-To-Live) para evitar caídas por inactividad del SQL Warehouse.
+*   **Seguridad:** Las credenciales de Databricks (Host, HTTP Path, Token PAT) se manejan a través de secretos en Streamlit, nunca expuestas en el código.
