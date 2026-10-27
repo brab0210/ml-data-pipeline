@@ -13,7 +13,7 @@ Construir un pipeline ETL end-to-end (Bronze → Silver → Gold) utilizando Dat
 - **Control de versiones:** GitHub (integrado con Databricks Git folders).
 
 ##  Estado Actual
-- **Etapa actual:** Dashboard funcional y desplegado.
+- **Etapa actual:** Dashboard funcional y desplegado - Finalizado.
 - **Última tarea completada:** Conexión de Streamlit a Databricks mediante `databricks-sql-connector` y despliegue en Streamlit Community Cloud.
 - **Próxima tarea a realizar:** (Opcional) Implementar una barra lateral con filtros interactivos o añadir más visualizaciones.
 - **Decisiones tomadas:** Se optó por la Opción A (conexión en tiempo real vía PAT) en lugar de exportar CSVs.
