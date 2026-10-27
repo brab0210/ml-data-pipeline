@@ -30,7 +30,7 @@ API CoinGecko (JSON)
    │
    ▼
 [ Streamlit]   ──> Dashboard interactivo conectado en tiempo real vía databricks-sql-connector.
-
+```
 ##  Tecnologías Utilizadas
 
 *   **Procesamiento y Almacenamiento:** Databricks, PySpark, Spark SQL, Delta Lake.
