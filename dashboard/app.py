@@ -23,7 +23,7 @@ def get_cached_connection():
 
 # Función para ejecutar queries y devolver un DataFrame
 @st.cache_data(ttl=600)  # Cache de 10 minutos
-def load_table(table_name):
+def load_table(table_name, query_condition=""):
     """Carga una tabla. Acepta una condición WHERE opcional."""
     query = f"SELECT * FROM {table_name} {query_condition}"
     try:
