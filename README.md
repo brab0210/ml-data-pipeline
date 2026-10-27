@@ -8,7 +8,7 @@
 
 Pipeline de datos end-to-end (ETL) diseñado para extraer información del mercado de criptomonedas en tiempo real, procesarla utilizando la **Arquitectura Medallion** en Databricks, y visualizar los resultados en un dashboard interactivo.
 
- **[Ver Dashboard en Vivo](https://ml-data-pipeline-jrp6rdenslzbvz2imfj5pf.streamlit.app/)**
+ **<a href="https://ml-data-pipeline-jrp6rdenslzbvz2imfj5pf.streamlit.app/" target="_blank">Ver Dashboard en Vivo</a>**
 
 ---
 
