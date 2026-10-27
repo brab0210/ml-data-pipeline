@@ -51,3 +51,4 @@ API CoinGecko (JSON)
 *   **Automatización total:** Un Job en Databricks orquesta la ingesta y transformación diaria (Tarea Bronze ➔ Tarea Silver ➔ Tarea Gold).
 *   **Manejo robusto de conexiones:** La app de Streamlit implementa un sistema de reintentos y TTL (Time-To-Live) para evitar caídas por inactividad del SQL Warehouse.
 *   **Seguridad:** Las credenciales de Databricks (Host, HTTP Path, Token PAT) se manejan a través de secretos en Streamlit, nunca expuestas en el código.
+*   **Calidad de Datos (Data Quality):** El pipeline incluye una tarea final de validación con PySpark que verifica que no haya precios nulos, valores negativos o registros duplicados antes de dar por exitosa la ejecución.
