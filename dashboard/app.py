@@ -56,7 +56,7 @@ st.sidebar.header("Filtros")
 
 # --- Carga de datos ---# Cargamos todas las fechas disponibles en el resumen
 try:
-     df_fechas = load_table("gold_market_summary")
+    df_fechas = load_table("gold_market_summary")
     df_fechas['ingestion_date'] = pd.to_datetime(df_fechas['ingestion_date']).dt.date
     
     # NUEVO: Encontramos la fecha más reciente en la base de datos
