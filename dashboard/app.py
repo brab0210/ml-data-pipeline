@@ -56,9 +56,20 @@ st.sidebar.header("Filtros")
 
 # --- Carga de datos ---# Cargamos todas las fechas disponibles en el resumen
 try:
-    df_fechas = load_table("gold_market_summary")
+     df_fechas = load_table("gold_market_summary")
     df_fechas['ingestion_date'] = pd.to_datetime(df_fechas['ingestion_date']).dt.date
-    fechas_disponibles = sorted(df_fechas['ingestion_date'].unique(), reverse=True)
+    
+    # NUEVO: Encontramos la fecha más reciente en la base de datos
+    fecha_maxima = df_fechas['ingestion_date'].max()
+    
+    # NUEVO: Calculamos la fecha de hace 7 días
+    fecha_limite = fecha_maxima - pd.Timedelta(days=7)
+    
+    # NUEVO: Filtramos para que el selectbox solo muestre fechas mayores o iguales al límite
+    fechas_disponibles = sorted(
+        df_fechas[df_fechas['ingestion_date'] >= fecha_limite]['ingestion_date'].unique(), 
+        reverse=True
+    )
 except Exception as e:
     st.error(f"Error al cargar fechas: {e}")
     st.stop()
@@ -88,7 +99,7 @@ try:
     top_5_names_str = ", ".join([f"'{name}'" for name in top_5_names])
     
     # 3. Hacemos la consulta a Silver usando ese string dinámico
-    query_history = f"WHERE name IN ({top_5_names_str})"
+    query_history = f"WHERE name IN ({top_5_names_str}) AND ingestion_date >= DATE_SUB((SELECT MAX(ingestion_date) FROM silver_coingecko_market), 7)"
     df_history = load_table("silver_coingecko_market", query_history)
     df_history['ingestion_date'] = pd.to_datetime(df_history['ingestion_date'])
 except Exception as e:
