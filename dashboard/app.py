@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from databricks import sql
+import requests
 
 st.set_page_config(page_title="Crypto Dashboard", page_icon="🪙", layout="wide")
 
