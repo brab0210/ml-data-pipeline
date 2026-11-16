@@ -9,7 +9,6 @@ st.set_page_config(page_title="Crypto Dashboard", page_icon="🪙", layout="wide
 st.title("🪙 Crypto Market Dashboard")
 st.markdown("Datos en tiempo real desde Databricks (Capa Gold).")
 
-
 # --- Configuración de la conexión (lee los secretos de Streamlit) ---
 def get_databricks_connection():
     return sql.connect(
@@ -29,7 +28,6 @@ def load_table(table_name, query_condition=""):
     """Carga una tabla. Acepta una condición WHERE opcional."""
     query = f"SELECT * FROM {table_name} {query_condition}"
     try:
-        # Intenta usar la conexión que está en caché
         conn = get_cached_connection()
         with conn.cursor() as cursor:
             cursor.execute(query)
@@ -37,10 +35,7 @@ def load_table(table_name, query_condition=""):
             columns = [desc[0] for desc in cursor.description]
             return pd.DataFrame(result, columns=columns)
     except Exception as e:
-        # Si falla (por ejemplo, conexión cerrada), limpia la caché de la conexión
         st.cache_resource.clear()
-        
-        # Vuelve a intentar con una conexión nueva
         try:
             conn = get_cached_connection()
             with conn.cursor() as cursor:
@@ -49,13 +44,13 @@ def load_table(table_name, query_condition=""):
                 columns = [desc[0] for desc in cursor.description]
                 return pd.DataFrame(result, columns=columns)
         except Exception as retry_error:
-            # Si el segundo intento también falla, muestra el error
             st.error(f"Error al conectar con Databricks después de reintentar: {retry_error}")
             st.stop()
 
+# --- FUNCIÓN PARA ENCENDER EL WAREHOUSE ---
 def encender_warehouse():
     """Envía una señal a Databricks para iniciar el SQL Warehouse si está detenido."""
-    host = st.secrets["DATABRICKS_HOST"] # ej: "dbc-xxxx.cloud.databricks.com"
+    host = st.secrets["DATABRICKS_HOST"]
     token = st.secrets["DATABRICKS_TOKEN"]
     warehouse_id = st.secrets["DATABRICKS_WAREHOUSE_ID"]
     
@@ -63,7 +58,6 @@ def encender_warehouse():
     headers = {"Authorization": f"Bearer {token}"}
     
     try:
-        # Hacemos la petición POST para iniciar el warehouse
         response = requests.post(url, headers=headers, timeout=30)
         if response.status_code == 200:
             st.toast("✅ Señal de encendido enviada a Databricks. El warehouse está arrancando...")
@@ -72,37 +66,27 @@ def encender_warehouse():
     except Exception as e:
         st.error(f"❌ Error al intentar encender el warehouse: {e}")
 
-# --- Llamada a la función ---
-# Colocá esta llamada justo al principio del bloque try, ANTES de cargar los datos.
-try:
-    # 1. Encendemos el warehouse automáticamente
-    encender_warehouse()
-    
-    # 2. Damos un pequeño margen de tiempo y mostramos un spinner
-    with st.spinner("Conectando a Databricks... (esto puede tardar unos minutos la primera vez)"):
-        # (Aquí va tu lógica de carga de datos existente)
-        df = load_data(query_datos) 
-        # ... resto del procesamiento ...
-        
-except Exception as e:
-    st.error(f"Error al cargar los datos: {e}")
-    st.stop()
+# --- INICIO DE LA EJECUCIÓN ---
+
+# 1. Encendemos el warehouse automáticamente antes de hacer cualquier consulta
+encender_warehouse()
 
 # --- Barra Lateral (Filtros) ---
 st.sidebar.header("Filtros")
 
-# --- Carga de datos ---# Cargamos todas las fechas disponibles en el resumen
+# --- Carga de datos ---
 try:
+    # 2. Cargamos todas las fechas disponibles en el resumen
     df_fechas = load_table("gold_market_summary")
     df_fechas['ingestion_date'] = pd.to_datetime(df_fechas['ingestion_date']).dt.date
     
-    # NUEVO: Encontramos la fecha más reciente en la base de datos
+    # Encontramos la fecha más reciente en la base de datos
     fecha_maxima = df_fechas['ingestion_date'].max()
     
-    # NUEVO: Calculamos la fecha de hace 7 días
+    # Calculamos la fecha de hace 7 días
     fecha_limite = fecha_maxima - pd.Timedelta(days=7)
     
-    # NUEVO: Filtramos para que el selectbox solo muestre fechas mayores o iguales al límite
+    # Filtramos para que el selectbox solo muestre fechas mayores o iguales al límite
     fechas_disponibles = sorted(
         df_fechas[df_fechas['ingestion_date'] >= fecha_limite]['ingestion_date'].unique(), 
         reverse=True
@@ -119,7 +103,6 @@ fecha_seleccionada = st.sidebar.selectbox(
 )
 
 # --- Carga de datos filtrados por la fecha seleccionada ---
-# Usamos la condición WHERE para traer solo el día elegido
 condicion = f"WHERE ingestion_date = '{fecha_seleccionada}'"
 
 try:
@@ -128,14 +111,11 @@ try:
     df_gainers = load_table("gold_top_gainers", condicion).sort_values("price_change_pct_24h", ascending=False)
     df_losers = load_table("gold_top_losers", condicion).sort_values("price_change_pct_24h", ascending=True)
     
-     #1. Extraemos dinámicamente los nombres de las 5 primeras monedas (las de mayor market cap hoy)
-    # df_top10 ya está ordenado por market_cap_rank
+    # Extraemos dinámicamente los nombres de las 5 primeras monedas
     top_5_names = df_top10.head(5)['name'].tolist()
-    
-    # 2. Armamos el string para el SQL. Ej: "'Bitcoin', 'Ethereum', 'Tether', 'BNB', 'Solana'"
     top_5_names_str = ", ".join([f"'{name}'" for name in top_5_names])
     
-    # 3. Hacemos la consulta a Silver usando ese string dinámico
+    # Hacemos la consulta a Silver usando ese string dinámico
     query_history = f"WHERE name IN ({top_5_names_str}) AND ingestion_date >= DATE_SUB((SELECT MAX(ingestion_date) FROM silver_coingecko_market), 7)"
     df_history = load_table("silver_coingecko_market", query_history)
     df_history['ingestion_date'] = pd.to_datetime(df_history['ingestion_date'])
@@ -153,7 +133,7 @@ col4.metric("Variación Promedio 24h", f"{df_summary['variacion_promedio_24h'][0
 
 st.divider()
 
-# --- Gráfico Histórico (NUEVO) ---
+# --- Gráfico Histórico ---
 st.subheader("Evolución Histórica (Top 5 Monedas)")
 fig_history = px.line(
     df_history, 
