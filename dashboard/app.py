@@ -9,40 +9,6 @@ st.set_page_config(page_title="Crypto Dashboard", page_icon="🪙", layout="wide
 st.title("🪙 Crypto Market Dashboard")
 st.markdown("Datos en tiempo real desde Databricks (Capa Gold).")
 
-def encender_warehouse():
-    """Envía una señal a Databricks para iniciar el SQL Warehouse si está detenido."""
-    host = st.secrets["DATABRICKS_HOST"] # ej: "dbc-xxxx.cloud.databricks.com"
-    token = st.secrets["DATABRICKS_TOKEN"]
-    warehouse_id = st.secrets["DATABRICKS_WAREHOUSE_ID"]
-    
-    url = f"https://{host}/api/2.0/sql/warehouses/{warehouse_id}/start"
-    headers = {"Authorization": f"Bearer {token}"}
-    
-    try:
-        # Hacemos la petición POST para iniciar el warehouse
-        response = requests.post(url, headers=headers, timeout=30)
-        if response.status_code == 200:
-            st.toast("✅ Señal de encendido enviada a Databricks. El warehouse está arrancando...")
-        else:
-            st.warning(f"⚠️ No se pudo enviar la señal de encendido (Código: {response.status_code})")
-    except Exception as e:
-        st.error(f"❌ Error al intentar encender el warehouse: {e}")
-
-# --- Llamada a la función ---
-# Colocá esta llamada justo al principio del bloque try, ANTES de cargar los datos.
-try:
-    # 1. Encendemos el warehouse automáticamente
-    encender_warehouse()
-    
-    # 2. Damos un pequeño margen de tiempo y mostramos un spinner
-    with st.spinner("Conectando a Databricks... (esto puede tardar unos minutos la primera vez)"):
-        # (Aquí va tu lógica de carga de datos existente)
-        df = load_data(query_datos) 
-        # ... resto del procesamiento ...
-        
-except Exception as e:
-    st.error(f"Error al cargar los datos: {e}")
-    st.stop()
 
 # --- Configuración de la conexión (lee los secretos de Streamlit) ---
 def get_databricks_connection():
@@ -86,6 +52,41 @@ def load_table(table_name, query_condition=""):
             # Si el segundo intento también falla, muestra el error
             st.error(f"Error al conectar con Databricks después de reintentar: {retry_error}")
             st.stop()
+
+def encender_warehouse():
+    """Envía una señal a Databricks para iniciar el SQL Warehouse si está detenido."""
+    host = st.secrets["DATABRICKS_HOST"] # ej: "dbc-xxxx.cloud.databricks.com"
+    token = st.secrets["DATABRICKS_TOKEN"]
+    warehouse_id = st.secrets["DATABRICKS_WAREHOUSE_ID"]
+    
+    url = f"https://{host}/api/2.0/sql/warehouses/{warehouse_id}/start"
+    headers = {"Authorization": f"Bearer {token}"}
+    
+    try:
+        # Hacemos la petición POST para iniciar el warehouse
+        response = requests.post(url, headers=headers, timeout=30)
+        if response.status_code == 200:
+            st.toast("✅ Señal de encendido enviada a Databricks. El warehouse está arrancando...")
+        else:
+            st.warning(f"⚠️ No se pudo enviar la señal de encendido (Código: {response.status_code})")
+    except Exception as e:
+        st.error(f"❌ Error al intentar encender el warehouse: {e}")
+
+# --- Llamada a la función ---
+# Colocá esta llamada justo al principio del bloque try, ANTES de cargar los datos.
+try:
+    # 1. Encendemos el warehouse automáticamente
+    encender_warehouse()
+    
+    # 2. Damos un pequeño margen de tiempo y mostramos un spinner
+    with st.spinner("Conectando a Databricks... (esto puede tardar unos minutos la primera vez)"):
+        # (Aquí va tu lógica de carga de datos existente)
+        df = load_data(query_datos) 
+        # ... resto del procesamiento ...
+        
+except Exception as e:
+    st.error(f"Error al cargar los datos: {e}")
+    st.stop()
 
 # --- Barra Lateral (Filtros) ---
 st.sidebar.header("Filtros")
